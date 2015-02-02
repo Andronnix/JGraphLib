@@ -26,7 +26,8 @@ public class ViewPanel extends JPanel
         g.clearRect(0, 0, size.width, size.height);
         if(bufferedImage != null)
         {
-            g.drawImage(bufferedImage, 0, 0, null);
+            //flip vertically
+            g.drawImage(bufferedImage, 0, 0, size.width, size.height, 0, size.height,size.width, 0, null);
         }
     }
 
