@@ -43,7 +43,7 @@ public class ViewPanel extends JPanel
             bufferedImage = new BufferedImage(size.width * 2, size.height * 2, BufferedImage.TYPE_INT_ARGB);
         }
 
-        test(bufferedImage);
+//        test(bufferedImage);
 
         Map<Integer, Point3D> modelVertices = model.getVertices();
 
@@ -133,6 +133,6 @@ public class ViewPanel extends JPanel
         Point2D z1 = new Point2D(0, 0);
         Point2D z2 = new Point2D(150, 0);
 
-        GUtils.drawTriangle(img, z0, z1, z2, GUtils.BLACK);
+        GUtils.drawTriangle(img, z2, z0, z2, GUtils.BLACK);
     }
 }

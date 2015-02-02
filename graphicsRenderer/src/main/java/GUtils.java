@@ -26,7 +26,6 @@ public class GUtils {
         {
             drawLine(img, p0, p1, color);
             drawLine(img, p0, p2, color);
-            drawLine(img, p1, p2, color);
             return;
         }
 
@@ -103,7 +102,7 @@ public class GUtils {
         int dd = (transposed)? dy : dx;
         int y = y0;
         int dey = (y1 > y0)? 1 : -1;
-        for(int x = x0; x < x1; x++)
+        for(int x = x0; x <= x1; x++)
         {
 //            System.out.printf("%d %d\n", x, y);
             if(!transposed)
