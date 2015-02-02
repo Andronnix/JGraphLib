@@ -59,4 +59,4 @@ $RECYCLE.BIN/
 *.lnk
 
 #idea config directory
-.idea/
+graphicsRenderer/.idea/
