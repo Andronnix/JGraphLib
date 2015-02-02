@@ -1,5 +1,7 @@
 package model;
 
+import geometry.Point3D;
+
 import java.util.List;
 import java.util.Map;
 
@@ -8,16 +10,16 @@ import java.util.Map;
  *         Created on 31.01.2015.
  */
 public class Model {
-    private Map<Integer, Vertex> vertex;
+    private Map<Integer, Point3D> vertex;
     private List<Face> face;
 
-    public Model(Map<Integer, Vertex> v, List<Face> f)
+    public Model(Map<Integer, Point3D> v, List<Face> f)
     {
         this.face = f;
         this.vertex = v;
     }
 
-    public Map<Integer, Vertex> getVertices() {
+    public Map<Integer, Point3D> getVertices() {
         return vertex;
     }
 
@@ -38,32 +40,6 @@ public class Model {
 
         public int[] getVertices() {
             return vertex;
-        }
-    }
-
-    public static class Vertex
-    {
-        private double x;
-        private double y;
-        private double z;
-
-        public Vertex(double x, double y, double z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-
-        public double getX() {
-            return x;
-        }
-
-        public double getY() {
-            return y;
-        }
-
-        public double getZ() {
-            return z;
         }
     }
 }
