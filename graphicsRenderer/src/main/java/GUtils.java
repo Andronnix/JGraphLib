@@ -1,7 +1,8 @@
-import geometry.Point2D;
+import geometry.Vector3d;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.Vector;
 
 /**
  * @author Andrey Kokorev
@@ -13,75 +14,77 @@ public class GUtils {
     public final static int BLUE  = 0xFF0000FF;
     public final static int BLACK = 0xFF000000;
 
-    public static void drawTriangle(BufferedImage img, Point2D p0, Point2D p1, Point2D p2, int color)
+    public static void drawTriangle(BufferedImage img, Vector3d p0, Vector3d p1, Vector3d p2, int color, double[][] zbuffer)
     {
-        Point2D[] pts = new Point2D[]{p0, p1, p2};
-        Arrays.sort(pts, (o1, o2) -> Integer.compare(o1.getY(), o2.getY()));
+        Vector3d[] pts = new Vector3d[]{p0, p1, p2};
+        Arrays.sort(pts, (o1, o2) -> Double.compare(o1.getY(), o2.getY()));
         p0 = pts[0];
         p1 = pts[1];
         p2 = pts[2];
 
-        int h  = p2.getY() - p0.getY();
+        double h = p2.getY() - p0.getY();
         if(h == 0)
         {
-            drawLine(img, p0, p1, color);
-            drawLine(img, p0, p2, color);
             return;
         }
 
-        int h1 = p1.getY() - p0.getY();
-        int h2 = p2.getY() - p1.getY();
+        double h1 = p1.getY() - p0.getY();
+        Vector3d p3 = p0.plus(p2.minus(p0).product(h1 / h));
 
-        int w   = p2.getX() - p1.getX();
-        int w1  = p1.getX() - p0.getX();
-        int w2  = p2.getX() - p0.getX();
-        int w02 = w2 * h1 / h;
-
-        int x0 = p0.getX();
-        int x1 = p1.getX();
-
-        if(h1 == 0)
+        if(h1 != 0)
         {
-            drawLine(img, p0, p1, color);
-        } else
-        {
-            drawTriangleHalf(img, p0.getY(), p1.getY(), x0, x0, h1, w1, w02, color);
+            drawTrianglePart(img, p0, p1, p3, color, zbuffer);
         }
 
-        if(h2 == 0)
+        if(h - h1 != 0)
         {
-            drawLine(img, p2, p1, color);
-        } else
-        {
-            drawTriangleHalf(img, p1.getY(), p2.getY(), x1, x0 + w02, h2, w, w2 - w02, color);
+            drawTrianglePart(img, p1, p2, p3, color, zbuffer);
         }
 
     }
 
-    private static void drawTriangleHalf(BufferedImage img, int yl, int yh, int x0, int x1, int h, int w1, int w2, int color)
+    private static void drawTrianglePart(BufferedImage img, Vector3d p0, Vector3d p1, Vector3d p2,
+                                         int color, double[][] zbuffer)
     {
-        for (int y = yl; y <= yh; y++)
+        int yl = (int) p0.getY();
+        int yh = (int) p1.getY();
+        boolean up = p2.getY() < p1.getY() - 1;
+        int h = Math.abs(yh - yl);
+        Vector3d v1 = p1.minus(p0);
+        Vector3d v2 = (up)? p1.minus(p2) : p2.minus(p0);
+
+        for (int y = yl; y <= yh; y ++)
         {
-            double t = (y - yl) * 1.0 / h;
-            int xl = (int)(x0 + w1 * t);
-            int xr = (int)(x1 + w2 * t);
+            double t = Math.abs(y - yl) * 1.0 / h;
+
+            Vector3d l = p0.plus(v1.product(t));
+            Vector3d r = (up)? p2.plus(v2.product(t)) : p0.plus(v2.product(t));
+            int xl = (int)(l.getX());
+            int xr = (int)(r.getX());
+
             if(xl > xr)
             {
                 int z = xl; xl = xr; xr = z;
             }
+            Vector3d lr = r.minus(l);
             for(int x = xl; x <= xr; x++)
             {
-                img.setRGB(x, y, color);
+                Vector3d p = l.plus(lr.product((x - xl)/ (1.0 * (xr - xl))));
+                if(p.getZ() > zbuffer[x][y])
+                {
+                    img.setRGB(x, y, color);
+                    zbuffer[x][y] = p.getZ();
+                }
             }
         }
     }
 
-    public static void drawLine(BufferedImage img, Point2D p0, Point2D p1, int color)
+    public static void drawLine(BufferedImage img, Vector3d p0, Vector3d p1, int color)
     {
-        int x0 = p0.getX();
-        int y0 = p0.getY();
-        int x1 = p1.getX();
-        int y1 = p1.getY();
+        int x0 = (int) Math.round(p0.getX());
+        int y0 = (int) Math.round(p0.getY());
+        int x1 = (int) Math.round(p1.getX());
+        int y1 = (int) Math.round(p1.getY());
 
         int dx = Math.abs(x0 - x1);
         int dy = Math.abs(y0 - y1);

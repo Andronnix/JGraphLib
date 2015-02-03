@@ -1,6 +1,5 @@
-import geometry.Point2D;
-import geometry.Point3D;
-import geometry.Vector;
+import geometry.Vector3d;
+import geometry.Vector3d;
 import model.Model;
 import model.Model.Face;
 
@@ -9,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -19,7 +19,8 @@ public class ViewPanel extends JPanel
 {
     private BufferedImage bufferedImage;
     private Dimension size;
-    private Vector lightDirection = new Vector(0, 0, -1);
+    private Vector3d lightDirection = new Vector3d(0, 0, -1);
+    private double[][] zbuffer;
 
     @Override
     public void paint(Graphics g)
@@ -40,42 +41,50 @@ public class ViewPanel extends JPanel
         {
             size = this.getSize();
 
-            bufferedImage = new BufferedImage(size.width * 2, size.height * 2, BufferedImage.TYPE_INT_ARGB);
+            bufferedImage = new BufferedImage(size.width + 1, size.height + 1, BufferedImage.TYPE_INT_ARGB);
+            zbuffer = new double[size.width + 1][size.height + 1];
+            for(int i = 0; i <= size.width; i++)
+            {
+                Arrays.fill(zbuffer[i], -Double.MAX_VALUE);
+            }
         }
 
 //        test(bufferedImage);
 
-        Map<Integer, Point3D> modelVertices = model.getVertices();
+        Map<Integer, Vector3d> modelVertices = model.getVertices();
 
         for(Face f : model.getFaces())
         {
             int[] vertices = f.getVertices();
-            Point3D v0 = modelVertices.get(vertices[0]);
-            Point3D v1 = modelVertices.get(vertices[1]);
-            Point3D v2 = modelVertices.get(vertices[2]);
+            Vector3d v0 = modelVertices.get(vertices[0]);
+            Vector3d v1 = modelVertices.get(vertices[1]);
+            Vector3d v2 = modelVertices.get(vertices[2]);
 
-            Point2D p0 = new Point2D(
+            Vector3d p0 = new Vector3d(
                     (int) ((v0.getX() + 1) * size.getWidth() / 2),
-                    (int) ((v0.getY() + 1) * size.getHeight() / 2)
+                    (int) ((v0.getY() + 1) * size.getHeight() / 2),
+                    (int) v0.getZ()
             );
-            Point2D p1 = new Point2D(
+            Vector3d p1 = new Vector3d(
                     (int) ((v1.getX() + 1) * size.getWidth() / 2),
-                    (int) ((v1.getY() + 1) * size.getHeight() / 2)
+                    (int) ((v1.getY() + 1) * size.getHeight() / 2),
+                    (int) v1.getZ()
             );
-            Point2D p2 = new Point2D(
+            Vector3d p2 = new Vector3d(
                     (int) ((v2.getX() + 1) * size.getWidth() / 2),
-                    (int) ((v2.getY() + 1) * size.getHeight() / 2)
+                    (int) ((v2.getY() + 1) * size.getHeight() / 2),
+                    (int) v2.getZ()
             );
 
 
-            Vector n = new Vector(v0, v2).product(new Vector(v0, v1));
+            Vector3d n = new Vector3d(v0, v2).product(new Vector3d(v0, v1));
             n.normalize();
             int intensity = (int)(n.dot(lightDirection) * 255);
             
             if(intensity > 0)
             {
                 int color = 0xFF000000 | (intensity << 16) | (intensity << 8) | (intensity);
-                GUtils.drawTriangle(bufferedImage, p0, p1, p2, color);
+                GUtils.drawTriangle(bufferedImage, p0, p1, p2, color, zbuffer);
             }
 
         }
@@ -85,15 +94,15 @@ public class ViewPanel extends JPanel
 
     private void test(BufferedImage img)
     {
-        Point2D c = new Point2D(100, 100);
-        Point2D e = new Point2D(0, 100);
-        Point2D w = new Point2D(200, 100);
-        Point2D n = new Point2D(100, 200);
-        Point2D s = new Point2D(100, 0);
-        Point2D ne = new Point2D(50, 150);
-        Point2D nw = new Point2D(150, 150);
-        Point2D se = new Point2D(50, 50);
-        Point2D sw = new Point2D(150, 50);
+        Vector3d c  = new Vector3d(100, 100, 0);
+        Vector3d e  = new Vector3d(0, 100, 0);
+        Vector3d w  = new Vector3d(200, 100, 0);
+        Vector3d n  = new Vector3d(100, 200, 0);
+        Vector3d s  = new Vector3d(100, 0, 0);
+        Vector3d ne = new Vector3d(50, 150, 0);
+        Vector3d nw = new Vector3d(150, 150, 0);
+        Vector3d se = new Vector3d(50, 50, 0);
+        Vector3d sw = new Vector3d(150, 50, 0);
 
         GUtils.drawLine(img, c, ne, GUtils.RED);
         GUtils.drawLine(img, c, nw, GUtils.RED);
@@ -105,34 +114,34 @@ public class ViewPanel extends JPanel
         GUtils.drawLine(img, c, s, GUtils.BLUE);
 
         int cx = 500, cy = 500, R = 50;
-        Point2D c1 = new Point2D(cx, cy);
+        Vector3d c1 = new Vector3d(cx, cy, 0);
         double alpha = 0, da = Math.PI / 32;
         for(int i = 0; i < 64; i++)
         {
-            Point2D p = new Point2D((int) (cx + R * Math.sin(alpha)), (int) (cx + R * Math.cos(alpha)));
+            Vector3d p = new Vector3d((int) (cx + R * Math.sin(alpha)), (int) (cx + R * Math.cos(alpha)), 0);
             GUtils.drawLine(img, c1, p, GUtils.GREEN);
             alpha += da;
         }
 
 
-        GUtils.drawLine(img, new Point2D(0, 400), new Point2D(10, 400), GUtils.BLACK);
+        GUtils.drawLine(img, new Vector3d(0, 400, 0), new Vector3d(10, 400, 0), GUtils.BLACK);
 
-        Point2D t0 = new Point2D(300, 120);
-        Point2D t1 = new Point2D(350, 60);
-        Point2D t2 = new Point2D(280, 280);
+        Vector3d t0 = new Vector3d(300, 120, 0);
+        Vector3d t1 = new Vector3d(350, 60, 0);
+        Vector3d t2 = new Vector3d(280, 280, 0);
 
-        GUtils.drawTriangle(img, t0, t1, t2, GUtils.RED);
+        GUtils.drawTriangle(img, t0, t1, t2, GUtils.RED, zbuffer);
 
-        Point2D q0 = new Point2D(189, 477);
-        Point2D q1 = new Point2D(609, 413);
-        Point2D q2 = new Point2D(483, 137);
+        Vector3d q0 = new Vector3d(189, 477, 0);
+        Vector3d q1 = new Vector3d(609, 413, 0);
+        Vector3d q2 = new Vector3d(483, 137, 0);
 
-        GUtils.drawTriangle(img, q0, q1, q2, GUtils.GREEN);
+        GUtils.drawTriangle(img, q0, q1, q2, GUtils.GREEN, zbuffer);
 
-        Point2D z0 = new Point2D(0, 150);
-        Point2D z1 = new Point2D(0, 0);
-        Point2D z2 = new Point2D(150, 0);
+        Vector3d z0 = new Vector3d(0, 150, 0);
+        Vector3d z1 = new Vector3d(0, 0, 0);
+        Vector3d z2 = new Vector3d(150, 0, 0);
 
-        GUtils.drawTriangle(img, z2, z0, z2, GUtils.BLACK);
+        GUtils.drawTriangle(img, z2, z0, z2, GUtils.BLACK, zbuffer);
     }
 }

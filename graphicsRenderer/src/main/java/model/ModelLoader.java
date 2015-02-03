@@ -1,6 +1,7 @@
 package model;
 
-import geometry.Point3D;
+import geometry.Vector3d;
+import geometry.Vector3d;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,7 +20,7 @@ public class ModelLoader
 {
     public static Model fromFile(Path path) throws IOException
     {
-        Map<Integer, Point3D> vertices = new HashMap<>();
+        Map<Integer, Vector3d> vertices = new HashMap<>();
         List<Model.Face> faces = new ArrayList<>();
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -27,7 +28,7 @@ public class ModelLoader
             String[] spt = str.split(" ");
             switch (spt[0]) {
                 case "v":
-                    vertices.put(counter.incrementAndGet(), new Point3D(
+                    vertices.put(counter.incrementAndGet(), new Vector3d(
                             Double.parseDouble(spt[1]),
                             Double.parseDouble(spt[2]),
                             Double.parseDouble(spt[3])
