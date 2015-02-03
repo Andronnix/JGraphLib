@@ -45,16 +45,7 @@ public class GUtils {
             drawLine(img, p0, p1, color);
         } else
         {
-            for (int y = p0.getY(), yh = p1.getY(); y <= yh; y++)
-            {
-                double t = (y - p0.getY()) * 1.0 / h1;
-                drawLine(
-                        img,
-                        new Point2D((int) (x0 + w1 * t), y),
-                        new Point2D((int) (x0 + w02 * t), y),
-                        color
-                );
-            }
+            drawTriangleHalf(img, p0.getY(), p1.getY(), x0, x0, h1, w1, w02, color);
         }
 
         if(h2 == 0)
@@ -62,18 +53,27 @@ public class GUtils {
             drawLine(img, p2, p1, color);
         } else
         {
-            for (int y = p1.getY(), yh = p2.getY(); y <= yh; y++)
-            {
-                double t = (y - p1.getY()) * 1.0 / h2;
-                drawLine(
-                        img,
-                        new Point2D((int) (x1 + w * t), y),
-                        new Point2D((int) (x0 + w02 + (w2 - w02) * t), y),
-                        color
-                );
-            }
+            drawTriangleHalf(img, p1.getY(), p2.getY(), x1, x0 + w02, h2, w, w2 - w02, color);
         }
 
+    }
+
+    private static void drawTriangleHalf(BufferedImage img, int yl, int yh, int x0, int x1, int h, int w1, int w2, int color)
+    {
+        for (int y = yl; y <= yh; y++)
+        {
+            double t = (y - yl) * 1.0 / h;
+            int xl = (int)(x0 + w1 * t);
+            int xr = (int)(x1 + w2 * t);
+            if(xl > xr)
+            {
+                int z = xl; xl = xr; xr = z;
+            }
+            for(int x = xl; x <= xr; x++)
+            {
+                img.setRGB(x, y, color);
+            }
+        }
     }
 
     public static void drawLine(BufferedImage img, Point2D p0, Point2D p1, int color)
@@ -104,7 +104,6 @@ public class GUtils {
         int dey = (y1 > y0)? 1 : -1;
         for(int x = x0; x <= x1; x++)
         {
-//            System.out.printf("%d %d\n", x, y);
             if(!transposed)
             {
                 img.setRGB(x, y, color);

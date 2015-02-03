@@ -27,6 +27,7 @@ public class ViewWindow extends JFrame
             try
             {
                 Model m = ModelLoader.fromFile(Paths.get("models", "african_head.obj"));
+//                Model m = ModelLoader.fromFile(Paths.get("models", "reconstructed_head.obj"));
                 viewPanel.drawModel(m);
             }
             catch (IOException e)
