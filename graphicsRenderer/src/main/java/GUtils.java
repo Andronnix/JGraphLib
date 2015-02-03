@@ -2,7 +2,6 @@ import geometry.Vector3d;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import java.util.Vector;
 
 /**
  * @author Andrey Kokorev
@@ -14,13 +13,27 @@ public class GUtils {
     public final static int BLUE  = 0xFF0000FF;
     public final static int BLACK = 0xFF000000;
 
-    public static void drawTriangle(BufferedImage img, Vector3d p0, Vector3d p1, Vector3d p2, int color, double[][] zbuffer)
+    public static void drawTriangle(BufferedImage img, BufferedImage textureImg,
+                                    Vector3d p0, Vector3d p1, Vector3d p2,
+                                    Vector3d t0, Vector3d t1, Vector3d t2,
+                                    double[][] zbuffer)
     {
-        Vector3d[] pts = new Vector3d[]{p0, p1, p2};
-        Arrays.sort(pts, (o1, o2) -> Double.compare(o1.getY(), o2.getY()));
-        p0 = pts[0];
-        p1 = pts[1];
-        p2 = pts[2];
+        if(p0.getY() > p1.getY())
+        {
+            Vector3d temp = p0; p0 = p1; p1 = temp;
+            temp = t0; t0 = t1; t1 = temp;
+        }
+        if(p0.getY() > p2.getY())
+        {
+            Vector3d temp = p2; p2 = p0; p0 = temp;
+            temp = t2; t2 = t0; t0 = temp;
+        }
+        if(p1.getY() > p2.getY())
+        {
+            Vector3d temp = p1; p1 = p2; p2 = temp;
+            temp = t1; t1 = t2; t2 = temp;
+        }
+
 
         double h = p2.getY() - p0.getY();
         if(h == 0)
@@ -30,21 +43,34 @@ public class GUtils {
 
         double h1 = p1.getY() - p0.getY();
         Vector3d p3 = p0.plus(p2.minus(p0).product(h1 / h));
+        Vector3d t3 = t0.plus(t2.minus(t0).product(h1 / h));
 
         if(h1 != 0)
         {
-            drawTrianglePart(img, p0, p1, p3, color, zbuffer);
+            drawTrianglePart(
+                    img, textureImg,
+                    p0, p1, p3,
+                    t0, t1, t3,
+                    zbuffer
+            );
         }
 
         if(h - h1 != 0)
         {
-            drawTrianglePart(img, p1, p2, p3, color, zbuffer);
+            drawTrianglePart(
+                    img, textureImg,
+                    p1, p2, p3,
+                    t1, t2, t3,
+                    zbuffer
+            );
         }
 
     }
 
-    private static void drawTrianglePart(BufferedImage img, Vector3d p0, Vector3d p1, Vector3d p2,
-                                         int color, double[][] zbuffer)
+    private static void drawTrianglePart(BufferedImage img, BufferedImage textureImg,
+                                         Vector3d p0, Vector3d p1, Vector3d p2,
+                                         Vector3d t0, Vector3d t1, Vector3d t2,
+                                         double[][] zbuffer)
     {
         int yl = (int) p0.getY();
         int yh = (int) p1.getY();
@@ -53,12 +79,20 @@ public class GUtils {
         Vector3d v1 = p1.minus(p0);
         Vector3d v2 = (up)? p1.minus(p2) : p2.minus(p0);
 
+        Vector3d tv1 = t1.minus(t0);
+        Vector3d tv2 = (up)? t1.minus(t2) : t2.minus(t0);
+
+
         for (int y = yl; y <= yh; y ++)
         {
             double t = Math.abs(y - yl) * 1.0 / h;
 
             Vector3d l = p0.plus(v1.product(t));
             Vector3d r = (up)? p2.plus(v2.product(t)) : p0.plus(v2.product(t));
+
+            Vector3d tl = t0.plus(tv1.product(t));
+            Vector3d tr = (up)? t2.plus(tv2.product(t)) : t0.plus(tv2.product(t));
+
             int xl = (int)(l.getX());
             int xr = (int)(r.getX());
 
@@ -67,12 +101,15 @@ public class GUtils {
                 int z = xl; xl = xr; xr = z;
             }
             Vector3d lr = r.minus(l);
+            Vector3d tlr = tr.minus(tl);
+
             for(int x = xl; x <= xr; x++)
             {
                 Vector3d p = l.plus(lr.product((x - xl)/ (1.0 * (xr - xl))));
+                Vector3d tp = tl.plus(tlr.product((x - xl)/ (1.0 * (xr - xl))));
                 if(p.getZ() > zbuffer[x][y])
                 {
-                    img.setRGB(x, y, color);
+                    img.setRGB(x, y, textureImg.getRGB((int) tp.getX(), (int)tp.getY()));
                     zbuffer[x][y] = p.getZ();
                 }
             }

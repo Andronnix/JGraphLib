@@ -1,5 +1,4 @@
 import geometry.Vector3d;
-import geometry.Vector3d;
 import model.Model;
 import model.Model.Face;
 
@@ -17,7 +16,7 @@ import java.util.Map;
  */
 public class ViewPanel extends JPanel
 {
-    private BufferedImage bufferedImage;
+    private BufferedImage bufferedImage, textureImg;
     private Dimension size;
     private Vector3d lightDirection = new Vector3d(0, 0, -1);
     private double[][] zbuffer;
@@ -42,6 +41,7 @@ public class ViewPanel extends JPanel
             size = this.getSize();
 
             bufferedImage = new BufferedImage(size.width + 1, size.height + 1, BufferedImage.TYPE_INT_ARGB);
+            textureImg = model.getTextureImg();
             zbuffer = new double[size.width + 1][size.height + 1];
             for(int i = 0; i <= size.width; i++)
             {
@@ -52,13 +52,19 @@ public class ViewPanel extends JPanel
 //        test(bufferedImage);
 
         Map<Integer, Vector3d> modelVertices = model.getVertices();
+        Map<Integer, Vector3d> modelTVertices = model.getTexture();
 
         for(Face f : model.getFaces())
         {
             int[] vertices = f.getVertices();
+            int[] tVertices = f.getTexture();
             Vector3d v0 = modelVertices.get(vertices[0]);
             Vector3d v1 = modelVertices.get(vertices[1]);
             Vector3d v2 = modelVertices.get(vertices[2]);
+
+            Vector3d t0 = modelTVertices.get(tVertices[0]);
+            Vector3d t1 = modelTVertices.get(tVertices[1]);
+            Vector3d t2 = modelTVertices.get(tVertices[2]);
 
             Vector3d p0 = new Vector3d(
                     (int) ((v0.getX() + 1) * size.getWidth() / 2),
@@ -84,7 +90,12 @@ public class ViewPanel extends JPanel
             if(intensity > 0)
             {
                 int color = 0xFF000000 | (intensity << 16) | (intensity << 8) | (intensity);
-                GUtils.drawTriangle(bufferedImage, p0, p1, p2, color, zbuffer);
+                GUtils.drawTriangle(
+                        bufferedImage, textureImg,
+                        p0, p1, p2,
+                        t0, t1, t2,
+                        zbuffer
+                );
             }
 
         }
@@ -130,18 +141,18 @@ public class ViewPanel extends JPanel
         Vector3d t1 = new Vector3d(350, 60, 0);
         Vector3d t2 = new Vector3d(280, 280, 0);
 
-        GUtils.drawTriangle(img, t0, t1, t2, GUtils.RED, zbuffer);
+//        GUtils.drawTriangle(img, t0, t1, t2, GUtils.RED, zbuffer);
 
         Vector3d q0 = new Vector3d(189, 477, 0);
         Vector3d q1 = new Vector3d(609, 413, 0);
         Vector3d q2 = new Vector3d(483, 137, 0);
 
-        GUtils.drawTriangle(img, q0, q1, q2, GUtils.GREEN, zbuffer);
+//        GUtils.drawTriangle(img, q0, q1, q2, GUtils.GREEN, zbuffer);
 
         Vector3d z0 = new Vector3d(0, 150, 0);
         Vector3d z1 = new Vector3d(0, 0, 0);
         Vector3d z2 = new Vector3d(150, 0, 0);
 
-        GUtils.drawTriangle(img, z2, z0, z2, GUtils.BLACK, zbuffer);
+//        GUtils.drawTriangle(img, z2, z0, z2, GUtils.BLACK, zbuffer);
     }
 }

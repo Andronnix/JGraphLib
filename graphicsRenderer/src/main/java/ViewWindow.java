@@ -26,8 +26,10 @@ public class ViewWindow extends JFrame
         button.addActionListener((listener) -> {
             try
             {
-                Model m = ModelLoader.fromFile(Paths.get("models", "african_head.obj"));
-//                Model m = ModelLoader.fromFile(Paths.get("models", "reconstructed_head.obj"));
+                Model m = ModelLoader.fromFile(
+                    Paths.get("models", "african_head.obj"),
+                    Paths.get("models", "african_head_diffuse.tga")
+                );
                 viewPanel.drawModel(m);
             }
             catch (IOException e)
