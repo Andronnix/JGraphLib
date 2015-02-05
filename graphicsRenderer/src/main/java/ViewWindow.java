@@ -29,6 +29,7 @@ public class ViewWindow extends JFrame
                 Model m = ModelLoader.fromFile(
                     Paths.get("models", "african_head.obj"),
                     Paths.get("models", "african_head_diffuse.tga")
+//                    Paths.get("models", "sqr_diffuse.tga")
                 );
                 viewPanel.drawModel(m);
             }

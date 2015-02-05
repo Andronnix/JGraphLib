@@ -16,7 +16,7 @@ public class GUtils {
     public static void drawTriangle(BufferedImage img, BufferedImage textureImg,
                                     Vector3d p0, Vector3d p1, Vector3d p2,
                                     Vector3d t0, Vector3d t1, Vector3d t2,
-                                    double[][] zbuffer)
+                                    double intensity, double[][] zbuffer)
     {
         if(p0.getY() > p1.getY())
         {
@@ -42,6 +42,7 @@ public class GUtils {
         }
 
         double h1 = p1.getY() - p0.getY();
+
         Vector3d p3 = p0.plus(p2.minus(p0).product(h1 / h));
         Vector3d t3 = t0.plus(t2.minus(t0).product(h1 / h));
 
@@ -51,7 +52,7 @@ public class GUtils {
                     img, textureImg,
                     p0, p1, p3,
                     t0, t1, t3,
-                    zbuffer
+                    intensity, zbuffer
             );
         }
 
@@ -61,7 +62,7 @@ public class GUtils {
                     img, textureImg,
                     p1, p2, p3,
                     t1, t2, t3,
-                    zbuffer
+                    intensity, zbuffer
             );
         }
 
@@ -70,7 +71,7 @@ public class GUtils {
     private static void drawTrianglePart(BufferedImage img, BufferedImage textureImg,
                                          Vector3d p0, Vector3d p1, Vector3d p2,
                                          Vector3d t0, Vector3d t1, Vector3d t2,
-                                         double[][] zbuffer)
+                                         double intensity, double[][] zbuffer)
     {
         int yl = (int) p0.getY();
         int yh = (int) p1.getY();
@@ -99,6 +100,7 @@ public class GUtils {
             if(xl > xr)
             {
                 int z = xl; xl = xr; xr = z;
+                Vector3d temp = tl; tl = tr; tr = temp;
             }
             Vector3d lr = r.minus(l);
             Vector3d tlr = tr.minus(tl);
@@ -109,7 +111,15 @@ public class GUtils {
                 Vector3d tp = tl.plus(tlr.product((x - xl)/ (1.0 * (xr - xl))));
                 if(p.getZ() > zbuffer[x][y])
                 {
-                    img.setRGB(x, y, textureImg.getRGB((int) tp.getX(), (int)tp.getY()));
+                    int color = multiplyColor(
+                            textureImg.getRGB((int)Math.round(tp.getX()), (int)Math.round(tp.getY()) - 1),
+                            intensity
+                    );
+                    img.setRGB(x, y, color);
+                    if(x == xl || x == xr || y == yl || y == yh)
+                    {
+//                        img.setRGB(x, y, RED);
+                    }
                     zbuffer[x][y] = p.getZ();
                 }
             }
@@ -159,5 +169,40 @@ public class GUtils {
                 error -= dd;
             }
         }
+    }
+
+    public static int multiplyColor(int color, double multiplier)
+    {
+        int a = colorA(color);
+        int r = (int) (colorR(color) * multiplier);
+        int g = (int) (colorG(color) * multiplier);
+        int b = (int) (colorB(color) * multiplier);
+
+        return ARGB(a, r, g, b);
+    }
+
+    public static int colorA(int color)
+    {
+        return (color & 0xFF000000) >> 24;
+    }
+
+    public static int colorR(int color)
+    {
+        return ((color & 0x00FF0000) >> 16);
+    }
+
+    public static int colorG(int color)
+    {
+        return ((color & 0x0000FF00) >> 8);
+    }
+
+    public static int colorB(int color)
+    {
+        return (color & 0x000000FF);
+    }
+
+    public static int ARGB(int a, int r, int g, int b)
+    {
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 }

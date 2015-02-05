@@ -71,4 +71,10 @@ public class Vector3d
     {
         return new Vector3d(x - v.getX(), y - v.getY(), z - v.getZ());
     }
+
+    @Override
+    public String toString()
+    {
+        return "(" + x + ", " + y + ", " + z + ")";
+    }
 }

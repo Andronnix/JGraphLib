@@ -85,16 +85,15 @@ public class ViewPanel extends JPanel
 
             Vector3d n = new Vector3d(v0, v2).product(new Vector3d(v0, v1));
             n.normalize();
-            int intensity = (int)(n.dot(lightDirection) * 255);
+            double intensity = n.dot(lightDirection);
             
             if(intensity > 0)
             {
-                int color = 0xFF000000 | (intensity << 16) | (intensity << 8) | (intensity);
                 GUtils.drawTriangle(
                         bufferedImage, textureImg,
                         p0, p1, p2,
                         t0, t1, t2,
-                        zbuffer
+                        intensity, zbuffer
                 );
             }
 
